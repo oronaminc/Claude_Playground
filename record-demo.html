@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>데모 녹화</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .recording-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+        .recording-controls button {
+            margin: 5px;
+            background: #e74c3c;
+        }
+        .recording-controls button.recording {
+            background: #27ae60;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .status {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="recording-controls">
+        <h3>🎬 데모 녹화</h3>
+        <button id="startBtn">녹화 시작</button>
+        <button id="stopBtn" disabled>녹화 중지</button>
+        <button id="downloadBtn" disabled>다운로드</button>
+        <div class="status" id="status">준비됨</div>
+    </div>
+
+    <div class="game-container">
+        <div class="score-board">
+            <span>점수: <span id="score">0</span></span>
+            <span style="margin-left: 30px;">생명: <span id="lives">3</span></span>
+        </div>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div class="controls">🤖 자동 플레이 데모 (녹화 중)</div>
+        <div id="message"></div>
+    </div>
+
+    <script type="module">
+        import Ball from './js/Ball.js';
+        import Paddle from './js/Paddle.js';
+        import BrickManager from './js/BrickManager.js';
+
+        // roundRect polyfill
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+                this.moveTo(x + radius, y);
+                this.lineTo(x + width - radius, y);
+                this.quadraticCurveTo(x + width, y, x + width, y + radius);
+                this.lineTo(x + width, y + height - radius);
+                this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                this.lineTo(x + radius, y + height);
+                this.quadraticCurveTo(x, y + height, x, y + height - radius);
+                this.lineTo(x, y + radius);
+                this.quadraticCurveTo(x, y, x + radius, y);
+            };
+        }
+
+        class AutoPlayGame {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.scoreElement = document.getElementById('score');
+                this.livesElement = document.getElementById('lives');
+                this.messageElement = document.getElementById('message');
+
+                this.score = 0;
+                this.lives = 3;
+                this.isRunning = false;
+                this.animationId = null;
+
+                this.ball = new Ball(this.canvas.width, this.canvas.height);
+                this.paddle = new Paddle(this.canvas.width, this.canvas.height);
+                this.brickManager = new BrickManager(this.canvas.width);
+
+                window.restartGame = () => this.restart();
+            }
+
+            start() {
+                this.isRunning = true;
+                this.gameLoop();
+            }
+
+            restart() {
+                this.score = 0;
+                this.lives = 3;
+                this.updateScore();
+                this.updateLives();
+                this.messageElement.innerHTML = '';
+                this.ball.reset();
+                this.paddle.reset();
+                this.brickManager.createBricks();
+                this.start();
+            }
+
+            autoMovePaddle() {
+                const paddleCenter = this.paddle.x + this.paddle.width / 2;
+                const ballX = this.ball.x;
+                const difference = ballX - paddleCenter;
+
+                if (difference > 10) {
+                    this.paddle.dx = this.paddle.speed;
+                } else if (difference < -10) {
+                    this.paddle.dx = -this.paddle.speed;
+                } else {
+                    this.paddle.dx = 0;
+                }
+            }
+
+            gameLoop() {
+                if (!this.isRunning) return;
+
+                this.update();
+                this.draw();
+
+                this.animationId = requestAnimationFrame(() => this.gameLoop());
+            }
+
+            update() {
+                this.autoMovePaddle();
+                this.ball.update();
+                this.paddle.update();
+
+                this.ball.checkWallCollision();
+                this.ball.checkPaddleCollision(this.paddle);
+
+                if (this.brickManager.checkCollision(this.ball)) {
+                    this.score += 10;
+                    this.updateScore();
+
+                    if (this.brickManager.getActiveBrickCount() === 0) {
+                        this.win();
+                    }
+                }
+
+                if (this.ball.checkBottomCollision()) {
+                    this.lives--;
+                    this.updateLives();
+                    if (this.lives === 0) {
+                        this.gameOver();
+                    } else {
+                        this.ball.reset();
+                    }
+                }
+            }
+
+            draw() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.brickManager.draw(this.ctx);
+                this.ball.draw(this.ctx);
+                this.paddle.draw(this.ctx);
+            }
+
+            updateScore() {
+                this.scoreElement.textContent = this.score;
+            }
+
+            updateLives() {
+                this.livesElement.textContent = this.lives;
+            }
+
+            gameOver() {
+                this.isRunning = false;
+                cancelAnimationFrame(this.animationId);
+                setTimeout(() => this.restart(), 2000);
+            }
+
+            win() {
+                this.isRunning = false;
+                cancelAnimationFrame(this.animationId);
+                setTimeout(() => this.restart(), 2000);
+            }
+        }
+
+        // 녹화 기능
+        const canvas = document.getElementById('gameCanvas');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const status = document.getElementById('status');
+
+        let mediaRecorder;
+        let recordedChunks = [];
+
+        startBtn.addEventListener('click', async () => {
+            try {
+                const stream = canvas.captureStream(30); // 30 FPS
+                mediaRecorder = new MediaRecorder(stream, {
+                    mimeType: 'video/webm;codecs=vp9',
+                    videoBitsPerSecond: 2500000
+                });
+
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                    const url = URL.createObjectURL(blob);
+                    downloadBtn.onclick = () => {
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'breakout-demo.webm';
+                        a.click();
+                    };
+                    downloadBtn.disabled = false;
+                    status.textContent = '녹화 완료! 다운로드 버튼을 클릭하세요.';
+                };
+
+                mediaRecorder.start();
+                startBtn.disabled = true;
+                startBtn.classList.add('recording');
+                stopBtn.disabled = false;
+                status.textContent = '녹화 중... (15-30초 후 중지하세요)';
+            } catch (err) {
+                console.error('녹화 시작 실패:', err);
+                status.textContent = '녹화 시작 실패: ' + err.message;
+            }
+        });
+
+        stopBtn.addEventListener('click', () => {
+            mediaRecorder.stop();
+            startBtn.disabled = false;
+            startBtn.classList.remove('recording');
+            stopBtn.disabled = true;
+        });
+
+        // 게임 시작
+        const game = new AutoPlayGame('gameCanvas');
+        game.start();
+    </script>
+</body>
+</html>

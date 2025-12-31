@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>벽돌깨기 게임 - 자동 플레이 데모</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="score-board">
+            <span>점수: <span id="score">0</span></span>
+            <span style="margin-left: 30px;">생명: <span id="lives">3</span></span>
+        </div>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div class="controls">🤖 자동 플레이 데모</div>
+        <div id="message"></div>
+    </div>
+
+    <script type="module">
+        import Ball from './js/Ball.js';
+        import Paddle from './js/Paddle.js';
+        import BrickManager from './js/BrickManager.js';
+
+        // roundRect polyfill
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+                this.moveTo(x + radius, y);
+                this.lineTo(x + width - radius, y);
+                this.quadraticCurveTo(x + width, y, x + width, y + radius);
+                this.lineTo(x + width, y + height - radius);
+                this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                this.lineTo(x + radius, y + height);
+                this.quadraticCurveTo(x, y + height, x, y + height - radius);
+                this.lineTo(x, y + radius);
+                this.quadraticCurveTo(x, y, x + radius, y);
+            };
+        }
+
+        // AI 자동 플레이 게임 클래스
+        class AutoPlayGame {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.scoreElement = document.getElementById('score');
+                this.livesElement = document.getElementById('lives');
+                this.messageElement = document.getElementById('message');
+
+                this.score = 0;
+                this.lives = 3;
+                this.isRunning = false;
+                this.animationId = null;
+
+                this.ball = new Ball(this.canvas.width, this.canvas.height);
+                this.paddle = new Paddle(this.canvas.width, this.canvas.height);
+                this.brickManager = new BrickManager(this.canvas.width);
+
+                window.restartGame = () => this.restart();
+            }
+
+            start() {
+                this.isRunning = true;
+                this.gameLoop();
+            }
+
+            restart() {
+                this.score = 0;
+                this.lives = 3;
+                this.updateScore();
+                this.updateLives();
+                this.messageElement.innerHTML = '';
+                this.ball.reset();
+                this.paddle.reset();
+                this.brickManager.createBricks();
+                this.start();
+            }
+
+            // AI: 공의 위치를 추적하여 패들을 자동으로 이동
+            autoMovePaddle() {
+                const paddleCenter = this.paddle.x + this.paddle.width / 2;
+                const ballX = this.ball.x;
+                const difference = ballX - paddleCenter;
+
+                // 공이 패들보다 오른쪽에 있으면
+                if (difference > 10) {
+                    this.paddle.dx = this.paddle.speed;
+                }
+                // 공이 패들보다 왼쪽에 있으면
+                else if (difference < -10) {
+                    this.paddle.dx = -this.paddle.speed;
+                }
+                // 거의 중앙에 있으면
+                else {
+                    this.paddle.dx = 0;
+                }
+            }
+
+            gameLoop() {
+                if (!this.isRunning) return;
+
+                this.update();
+                this.draw();
+
+                this.animationId = requestAnimationFrame(() => this.gameLoop());
+            }
+
+            update() {
+                // AI 자동 조작
+                this.autoMovePaddle();
+
+                this.ball.update();
+                this.paddle.update();
+
+                this.ball.checkWallCollision();
+                this.ball.checkPaddleCollision(this.paddle);
+
+                if (this.brickManager.checkCollision(this.ball)) {
+                    this.score += 10;
+                    this.updateScore();
+
+                    if (this.brickManager.getActiveBrickCount() === 0) {
+                        this.win();
+                    }
+                }
+
+                if (this.ball.checkBottomCollision()) {
+                    this.lives--;
+                    this.updateLives();
+                    if (this.lives === 0) {
+                        this.gameOver();
+                    } else {
+                        this.ball.reset();
+                    }
+                }
+            }
+
+            draw() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.brickManager.draw(this.ctx);
+                this.ball.draw(this.ctx);
+                this.paddle.draw(this.ctx);
+            }
+
+            updateScore() {
+                this.scoreElement.textContent = this.score;
+            }
+
+            updateLives() {
+                this.livesElement.textContent = this.lives;
+            }
+
+            gameOver() {
+                this.isRunning = false;
+                cancelAnimationFrame(this.animationId);
+                this.messageElement.innerHTML = `
+                    <div class="game-over">게임 오버!</div>
+                    <button onclick="restartGame()">다시 시작</button>
+                `;
+            }
+
+            win() {
+                this.isRunning = false;
+                cancelAnimationFrame(this.animationId);
+                this.messageElement.innerHTML = `
+                    <div class="game-win">축하합니다! 승리!</div>
+                    <button onclick="restartGame()">다시 시작</button>
+                `;
+            }
+        }
+
+        // 게임 시작
+        const game = new AutoPlayGame('gameCanvas');
+        game.start();
+    </script>
+</body>
+</html>

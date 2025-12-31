@@ -8,7 +8,7 @@ HTML5 Canvas와 JavaScript로 만든 클래식 벽돌깨기 게임입니다.
 
 ## 🎥 게임 플레이
 
-![Breakout Game Demo](https://raw.githubusercontent.com/oronaminc/Claude_Playground/main/demo.gif)
+https://github.com/oronaminc/Claude_Playground/assets/demo.webm
 
 *화살표 키로 패들을 움직여 공을 튕기고 모든 벽돌을 깨세요!*
 

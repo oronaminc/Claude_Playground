@@ -8,9 +8,16 @@ HTML5 Canvas와 JavaScript로 만든 클래식 벽돌깨기 게임입니다.
 
 ## 🎥 게임 플레이
 
-https://github.com/oronaminc/Claude_Playground/raw/main/demo.webm
+> **비디오를 보려면**: 아래 단계를 따라 비디오를 README에 임베드해주세요
+> 1. GitHub에서 이 파일 편집 (연필 아이콘 클릭)
+> 2. 아래 영역에 `demo.webm` 파일을 드래그 앤 드롭
+> 3. 자동 생성된 링크를 그대로 두고 저장
+
+<!-- 여기에 demo.webm 파일을 드래그 앤 드롭하세요 -->
 
 *화살표 키로 패들을 움직여 공을 튕기고 모든 벽돌을 깨세요!*
+
+**임시 링크**: [데모 비디오 다운로드](https://github.com/oronaminc/Claude_Playground/raw/main/demo.webm)
 
 ## 특징
 

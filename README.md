@@ -2,6 +2,16 @@
 
 HTML5 Canvas와 JavaScript로 만든 클래식 벽돌깨기 게임입니다.
 
+## 🎮 라이브 데모
+
+**[지금 플레이하기](https://oronaminc.github.io/Claude_Playground/)** 👈 클릭!
+
+## 🎥 게임 플레이
+
+![Breakout Game Demo](https://raw.githubusercontent.com/oronaminc/Claude_Playground/main/demo.gif)
+
+*화살표 키로 패들을 움직여 공을 튕기고 모든 벽돌을 깨세요!*
+
 ## 특징
 
 - 객체지향 프로그래밍 (OOP) 구조

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebM to Animated WebP Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .converter {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        input[type="file"] {
+            margin: 20px 0;
+            padding: 10px;
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            width: 100%;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        #status {
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        #status.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        #status.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+        #status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            display: block;
+        }
+        video, img {
+            max-width: 100%;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="converter">
+        <h1>🎬 WebM → Animated WebP 변환기</h1>
+        <p>WebM 비디오 파일을 GitHub에서 바로 재생 가능한 애니메이션 WebP로 변환합니다.</p>
+
+        <input type="file" id="fileInput" accept=".webm,video/webm">
+        <button id="convertBtn" disabled>변환하기</button>
+        <button id="downloadBtn" disabled>다운로드</button>
+
+        <div id="status"></div>
+
+        <div id="preview"></div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const convertBtn = document.getElementById('convertBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const status = document.getElementById('status');
+        const preview = document.getElementById('preview');
+
+        let convertedBlob = null;
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                convertBtn.disabled = false;
+                showStatus('파일이 선택되었습니다. 변환 버튼을 클릭하세요.', 'info');
+            }
+        });
+
+        convertBtn.addEventListener('click', async () => {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            showStatus('변환 중... (브라우저에서 직접 변환할 수 없습니다)', 'error');
+
+            // 안내 메시지 표시
+            status.innerHTML = `
+                <strong>⚠️ 브라우저에서 직접 변환이 불가능합니다.</strong><br><br>
+                다음 방법 중 하나를 선택하세요:<br><br>
+                <strong>방법 1: 온라인 도구 사용 (추천)</strong><br>
+                1. <a href="https://cloudconvert.com/webm-to-webp" target="_blank">CloudConvert</a> 접속<br>
+                2. demo.webm 파일 업로드<br>
+                3. "Convert" 클릭 후 다운로드<br><br>
+
+                <strong>방법 2: ezgif 사용</strong><br>
+                1. <a href="https://ezgif.com/video-to-webp" target="_blank">ezgif.com/video-to-webp</a> 접속<br>
+                2. demo.webm 파일 업로드<br>
+                3. "Convert to WebP" 클릭<br><br>
+
+                <strong>방법 3: ffmpeg 설치 (최고 품질)</strong><br>
+                터미널에서 실행:<br>
+                <code>brew install ffmpeg</code><br>
+                <code>ffmpeg -i demo.webm -vcodec libwebp -lossless 0 -q:v 80 -loop 0 demo.webp</code>
+            `;
+        });
+
+        function showStatus(message, type) {
+            status.textContent = message;
+            status.className = type;
+        }
+    </script>
+</body>
+</html>

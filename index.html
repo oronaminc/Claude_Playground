@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>벽돌깨기 게임</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="score-board">
+            <span>점수: <span id="score">0</span></span>
+            <span style="margin-left: 30px;">생명: <span id="lives">3</span></span>
+        </div>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div class="controls">← → 화살표 키로 패들 조작</div>
+        <div id="message"></div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

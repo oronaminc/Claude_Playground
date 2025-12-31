@@ -14,6 +14,7 @@ HTML5 Canvas와 JavaScript로 만든 클래식 벽돌깨기 게임입니다.
 > 3. 자동 생성된 링크를 그대로 두고 저장
 
 <!-- 여기에 demo.webm 파일을 드래그 앤 드롭하세요 -->
+[breakout-demo.webm](https://github.com/user-attachments/assets/14bd4d89-2574-4acc-b31b-d8c4f7565372)
 
 *화살표 키로 패들을 움직여 공을 튕기고 모든 벽돌을 깨세요!*
 
